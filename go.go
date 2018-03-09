@@ -1,1 +1,0 @@
-package vk_repost_bot
