@@ -32,4 +32,10 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/dmitry-appnext/easyvk"
+  name = "github.com/thedoctorde/vk-api"
+
+[[constraint]]
+    branch = "master"
+    name = "github.com/joho/godotenv"
+
+

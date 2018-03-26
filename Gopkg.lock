@@ -2,23 +2,32 @@
 
 
 [[projects]]
-  branch = "master"
-  name = "github.com/dmitry-appnext/easyvk"
+  name = "github.com/go-telegram-bot-api/telegram-bot-api"
   packages = ["."]
-  revision = "3268e5931c7d9df59de337e9da2179104d569fcb"
+  revision = "2022d04b94f50056a09962b1ac81cdd821d20a55"
+  version = "v4.6.1"
 
 [[projects]]
   branch = "master"
-  name = "golang.org/x/net"
-  packages = [
-    "html",
-    "html/atom"
-  ]
-  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "6bb08516677f8c8274c557fc801bee9ab564ab2c"
+
+[[projects]]
+  name = "github.com/technoweenie/multipartstreamer"
+  packages = ["."]
+  revision = "a90a01d73ae432e2611d178c18367fbaa13e0154"
+  version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/thedoctorde/vk-api"
+  packages = ["."]
+  revision = "d1cebfe3b2103ad46b12609fef10467c4a33419a"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "a9922423aba1929290a1bc4468a03718eb9810835f62b585234ffcb152b2e80c"
+  inputs-digest = "2a75a55d1d11d9f8920dcce892adf5df213ee197094fd4fcc3d44608d7cebf44"
   solver-name = "gps-cdcl"
   solver-version = 1
