@@ -8,6 +8,8 @@ import (
 	"github.com/thedoctorde/vk-repost-bot/vk"
 	"log"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -43,8 +45,20 @@ func (h *History) Add(groupId, postId int64, text string, date int64) error {
 	return nil
 }
 
-func main() {
+func (h *History) Has(groupId, postId int64) bool {
+	h.lock.Lock()
+	defer h.lock.Unlock()
 
+	if _, ok := h.storage[groupId]; ok {
+		if _, ok2 := h.storage[groupId][postId]; ok2 {
+			return true
+		}
+	}
+	return false
+}
+
+func main() {
+	//var postedRecordIds = map[string]struct{}{}
 	err := godotenv.Load("settings.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -52,24 +66,25 @@ func main() {
 	tokenTg := os.Getenv("TOKEN_TG")
 	tgChannelName := os.Getenv("CHANNEL_NAME")
 	tokenVk := os.Getenv("TOKEN_VK")
-
+	groupsStr := os.Getenv("GROUPS")
+	updateStr := os.Getenv("UPDATE")
+	update, _ := strconv.Atoi(updateStr)
+	updatePeriod := int64(update)
 	vkManager, err := vk.NewManager(tokenVk)
 	if err != nil {
 		fmt.Println(err)
 	}
-	groups := []int64{
-		102325800,
-		62262331,
-		90358638,
-		76800969,
-		62914251,
-		134618886,
-		86264049,
-		119563192,
-		73493509,
-		149861205,
-		163995482,
+	var groups []int64
+	a := strings.Split(groupsStr, ",")
+	for i := range a {
+		n, err := strconv.Atoi(a[i])
+		if err != nil {
+			continue
+		}
+		num := int64(n)
+		groups = append(groups, num)
 	}
+
 	vkManager.FillGroups(groups)
 
 	history := NewHistory()
@@ -81,23 +96,40 @@ func main() {
 			dst := vkapi.Destination{
 				GroupID: key,
 			}
-			_, items, _, _, errReq := vkManager.Client.GetWall(dst, 4, 0, "", false)
+			_, wallPosts, _, _, errReq := vkManager.Client.GetWall(dst, 10, 0, "", false)
 			if errReq != nil {
 				fmt.Println(errReq)
-			} else {
-				for _, item := range items {
-					fmt.Println(item)
-					if (unixNow - item.Date) < 300 {
-						history.Add(item.OwnerID, item.ID, item.Text, item.Date)
-						err = b.SendMessage(tgChannelName, item.Text)
-						if err != nil {
-							fmt.Println(err)
+				continue
+			}
+			for _, wallPost := range wallPosts {
+				if (unixNow - wallPost.Date) > 1200 {
+					continue
+				}
+				if history.Has(wallPost.OwnerID, wallPost.ID) {
+					continue
+				}
+				history.Add(wallPost.OwnerID, wallPost.ID, wallPost.Text, wallPost.Date)
+				err = b.SendMessage(tgChannelName, wallPost.Text)
+				if err != nil {
+					runes := []rune(wallPost.Text)
+					l := len(runes)
+					var runes1 []rune
+					var runes2 []rune
+					for i := range runes {
+						if i < l/2 {
+							runes1 = append(runes1, runes[i])
+						} else {
+							runes2 = append(runes2, runes[i])
 						}
 					}
+					err = b.SendMessage(tgChannelName, string(runes1))
+					err = b.SendMessage(tgChannelName, string(runes2))
+					fmt.Println(err)
 				}
+
 			}
 		}
-		time.Sleep(5 * time.Minute)
+		time.Sleep(time.Duration(updatePeriod) * time.Second)
 	}
 
 	wg := sync.WaitGroup{}
